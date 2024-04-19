@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование API аутентификации</title>
+</head>
+<body>
+    <h2>Регистрация</h2>
+    <form id="registerForm">
+        <div id="registerError" style="color: red;"></div>
+        <label for="username">Имя пользователя:</label><br>
+        <input type="text" id="registerUsername" name="username"><br>
+        <label for="password">Пароль:</label><br>
+        <input type="password" id="registerPassword" name="password"><br><br>
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+    <hr>
+
+    <h2>Вход</h2>
+    <form id="loginForm">
+        <div id="loginError" style="color: red;"></div>
+        <label for="username">Имя пользователя:</label><br>
+        <input type="text" id="loginUsername" name="username"><br>
+        <label for="password">Пароль:</label><br>
+        <input type="password" id="loginPassword" name="password"><br><br>
+        <button type="submit">Войти</button>
+    </form>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const loginForm = document.getElementById('loginForm');
+        const registerError = document.getElementById('registerError');
+        const loginError = document.getElementById('loginError');
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(registerForm);
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/register', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error('Ошибка регистрации');
+                }
+                const data = await response.json();
+                console.log(data);
+            } catch (error) {
+                registerError.textContent = error.message;
+            }
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(loginForm);
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    throw new Error('Ошибка входа');
+                }
+                const data = await response.json();
+                console.log(data);
+            } catch (error) {
+                loginError.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>
