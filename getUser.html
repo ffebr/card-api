@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка данных о событиях</title>
+</head>
+<body>
+    <h1>Данные о событиях</h1>
+    <button onclick="fetchEvents()">Загрузить события</button>
+    <div id="eventsContainer"></div>
+
+    <script>
+        // Функция для получения данных о событиях из API
+        async function fetchEvents() {
+            try {
+                const response = await fetch('http://localhost:3000/api/events');
+                const events = await response.json();
+                displayEvents(events);
+            } catch (error) {
+                console.error('Ошибка при получении данных о событиях:', error);
+            }
+        }
+
+        // Функция для отображения данных о событиях на странице
+        function displayEvents(events) {
+            const eventsContainer = document.getElementById('eventsContainer');
+            if (events.length === 0) {
+                eventsContainer.textContent = 'Нет доступных событий';
+            } else {
+                eventsContainer.innerHTML = '<h2>Список событий:</h2>';
+                const ul = document.createElement('ul');
+                events.forEach(event => {
+                    const li = document.createElement('li');
+                    li.textContent = `${event.event_name} (${event.date}) - ${event.partner_name} - ${event.location}`;
+                    ul.appendChild(li);
+                });
+                eventsContainer.appendChild(ul);
+            }
+        }
+    </script>
+</body>
+</html>

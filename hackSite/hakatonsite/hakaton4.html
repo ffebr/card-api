@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(180deg, #9AFF92 -37.11%, #FFFFFF 48.05%, #9AFF92 133.2%);
+        }
+        .container{
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            width: 10
+        }
+        .container img {
+            max-width: 100%;
+            height: auto;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 200px;
+            margin-bottom: 20px;
+        }
+        .buttons button {
+            width: 45%;
+            height: 40px;
+            background-color: #9AFF92;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .container img:nth-child(2) {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .container img:nth-child(n+3) {
+            position: relative;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ДОБРО ПОЖАЛОВАТЬ</h1>
+    <div class="buttons">
+        <button onclick="window.location.href = 'hakaton3.html'">Карта</button>
+        <button onclick="window.location.href = 'hakaton4.html'">Профиль</button>
+        <button onclick="window.location.href = 'hakaton2.html'">Выйти</button>
+    </div>
+    <div class="container">
+        <img src="Rectangle 20.png" alt="Rectangle 20">
+        <img src="Rectangle 21.png" alt="Another Image">
+        <img src="Group 5.png" alt="Image 1" style="position: absolute; display: inline-block;margin-top: 10px;right: 0;">
+        <img src="Group 6.png" alt="Image 2" style="position: absolute; display: inline-block; margin-top: 150px;right: 0;">
+        <img src="Group 4.png" alt="Image 3" style="position: absolute; display: inline-block; margin-top: 310px;right: 0;">
+    </div>
+    
+</body>
+</html>

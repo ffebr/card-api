@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Регистрация</title>
+    <style>
+        body {
+            background: linear-gradient(180deg, #9AFF92 -37.11%, #FFFFFF 48.05%, #9AFF92 133.2%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 1200px;
+            margin-top: 50px;
+            padding: 20px;
+        }
+
+        .container img {
+            width: 50%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .container form {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 50%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+
+        .container form label {
+            margin-bottom: 5px;
+            font-size: 16 }
+
+        .container form input,
+        .container form textarea {
+            margin-bottom: 15px;
+          
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .container form input[type="submit"] {
+            background-color: #9AFF92;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .container .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .container .buttons button {
+            width: 45%;
+            height: 40px;
+            background-color: #9AFF92;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px
+
+        }
+
+        .container .login {
+            margin-left: auto;
+        }
+
+        .container form h1 {
+            color: #9AFF92;
+            font-family: 'Comfortaa', cursive;
+        }
+
+        .container form h3 {
+            font-family: 'Comfortaa', cursive;
+        }
+
+
+        .container form label,
+        .container form button,
+        .container form input,
+        .container form textarea,
+        .container form input[type="submit"] {
+            font-family: 'Comfortaa', cursive;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="Rectangle 2.png" alt="Картинка">
+        <form>
+            <div class="buttons">
+                <button onclick="window.location.href = 'hakaton2.html'">Вход</button>
+                <button onclick="window.location.href = 'hakaton1.html'">Регистрация</button>
+            </div>
+            <div style="display: flex; flex-direction: column; text-align: center;">
+                <h1>ВХОД</h1>
+                <h3>В ВАШ АККАУНТ</h3>
+                <div style="width: 100%;">
+                    <label for="email">Почта:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div style="width: 100%;">
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" name="password" required >               
+                </div>
+            </div>
+            <div style="width: 100%;">
+                <label for="acceptNotifications">Запомнить меня?</label> <input type="checkbox" id="acceptNotifications" name="acceptNotifications">
+            </div>               
+            <button onclick="window.location.href = 'hakaton3.html'">Отправить</button>
+        </form>
+    </div>
+</body>
+</html>

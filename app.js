@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const dbConnection = require('./db');
+const moment = require('moment');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +15,6 @@ function generateToken(user) {
     return jwt.sign({ id: user.id, username: user.username }, '224455', { expiresIn: '1h' });
 }
 
-// Регистрация нового пользователя
 // Регистрация нового пользователя
 app.post('/api/register', async (req, res) => {
     try {
@@ -53,7 +53,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-
 // Вход пользователя и создание JWT токена
 app.post('/api/login', async (req, res) => {
     try {
@@ -76,9 +75,18 @@ app.post('/api/login', async (req, res) => {
             // Сравнение паролей
             const user = results[0];
             if (await bcrypt.compare(password, user.password)) {
-                // Создание JWT токена
-                const token = generateToken(user);
-                res.json({ token });
+                // Обновление поля last_login
+                const currentDatetime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                dbConnection.query('UPDATE users SET last_login = ? WHERE id = ?', [currentDatetime, user.id], (err) => {
+                    if (err) {
+                        console.error('Ошибка обновления last_login:', err);
+                        return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+                    }
+
+                    // Создание JWT токена с user_id
+                    const token = generateToken({ id: user.id, username: user.username });
+                    res.json({ token, user_id: user.id });
+                });
             } else {
                 res.status(401).json({ error: 'Неверное имя пользователя или пароль' });
             }
@@ -88,6 +96,7 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
+
 
 // Защищенный маршрут для проверки JWT токена
 app.get('/api/protected', authenticateToken, (req, res) => {
@@ -111,43 +120,59 @@ function authenticateToken(req, res, next) {
     });
 }
 
-
-// Создание карты для пользователя
 // Создание карты для пользователя
 app.post('/api/createCard', async (req, res) => {
     try {
         const { user_id } = req.body;
-        
-        // Проверяем, существует ли карта для этого пользователя
-        dbConnection.query('SELECT * FROM cards WHERE user_id = ?', [user_id], async (err, results) => {
+
+        // Получаем роль пользователя из базы данных
+        dbConnection.query('SELECT role FROM users WHERE id = ?', [user_id], async (err, results) => {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
 
-            if (results.length > 0) {
-                return res.status(400).json({ error: 'У этого пользователя уже есть карта' });
+            if (results.length === 0) {
+                return res.status(404).json({ error: 'Пользователь не найден' });
             }
 
-            // Получаем последний номер карты
-            let lastCardNumber = 100000; // Начальное значение
-            dbConnection.query('SELECT MAX(last_сard_number) AS lastCardNumber FROM cards', (err, result) => {
+            const userRole = results[0].role;
+
+            // Проверяем, равна ли роль 'norole'
+            if (userRole === 'norole') {
+                return res.status(403).json({ error: 'Пользователь не имеет права создавать карту' });
+            }
+
+            // Проверяем, существует ли карта для этого пользователя
+            dbConnection.query('SELECT * FROM cards WHERE user_id = ?', [user_id], async (err, results) => {
                 if (err) {
                     return res.status(500).json({ error: err.message });
                 }
 
-                if (result.length > 0 && result[0].lastCardNumber) {
-                    lastCardNumber = result[0].lastCardNumber + 1;
+                if (results.length > 0) {
+                    return res.status(400).json({ error: 'У этого пользователя уже есть карта' });
                 }
 
-                // Генерируем дату создания
-                const creationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-                // Вставляем новую карту в базу данных
-                dbConnection.query('INSERT INTO cards (user_id, card_number, creation_date) VALUES (?, ?, ?)', [user_id, lastCardNumber, creationDate], (err, result) => {
+                // Получаем последний номер карты
+                let lastCardNumber = 100000; // Начальное значение
+                dbConnection.query('SELECT MAX(last_card_number) AS lastCardNumber FROM cards', (err, result) => {
                     if (err) {
                         return res.status(500).json({ error: err.message });
                     }
-                    res.status(201).json({ message: 'Карта успешно создана', card_number: lastCardNumber });
+
+                    if (result.length > 0 && result[0].lastCardNumber) {
+                        lastCardNumber = result[0].lastCardNumber + 1;
+                    }
+
+                    // Генерируем дату создания
+                    const creationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+                    // Вставляем новую карту в базу данных
+                    dbConnection.query('INSERT INTO cards (user_id, last_card_number, creation_date) VALUES (?, ?, ?)', [user_id, lastCardNumber, creationDate], (err, result) => {
+                        if (err) {
+                            return res.status(500).json({ error: err.message });
+                        }
+                        res.status(201).json({ message: 'Карта успешно создана', card_number: lastCardNumber });
+                    });
                 });
             });
         });
@@ -158,8 +183,137 @@ app.post('/api/createCard', async (req, res) => {
 });
 
 
+//получение информации о user
+app.get('/api/user/:user_id', async (req, res) => {
+    try {
+        const userId = req.params.user_id;
+
+        // Получаем данные пользователя из базы данных
+        dbConnection.query('SELECT first_name, last_name, patro, email, role, polic, birth FROM users WHERE id = ?', [userId], (err, userResults) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            if (userResults.length === 0) {
+                return res.status(404).json({ error: 'Пользователь не найден' });
+            }
+
+            const userData = userResults[0];
+
+            // Проверяем, существует ли карта у пользователя
+            dbConnection.query('SELECT series_card, last_card_number, balance FROM cards WHERE user_id = ?', [userId], (err, cardResults) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+
+                if (cardResults.length > 0) {
+                    const cardData = cardResults[0];
+                    userData.card = cardData;
+                }
+
+                res.json(userData);
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка получения данных пользователя:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
 
 
+app.get('/api/getActions', (req, res) => {
+    try {
+        const today = new Date().toISOString().slice(0, 10); // Получаем сегодняшнюю дату в формате "YYYY-MM-DD"
+
+        // Запрос к базе данных для получения всех действий, у которых end_date больше сегодняшней даты
+        dbConnection.query(
+            `SELECT actions.*, partners.name AS partner_name FROM actions
+            INNER JOIN partners ON actions.partner_id = partners.id
+            WHERE end_date > ?`,
+            [today],
+            (err, results) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+
+                res.json(results);
+            }
+        );
+    } catch (error) {
+        console.error('Ошибка получения данных о действиях:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+
+// app.js
+
+// ...
+
+// Редактирование данных пользователя
+app.put('/api/useredit/:user_id', async (req, res) => {
+    try {
+        const userId = req.params.user_id;
+        const { first_name, patro, last_name, birth_date, polic } = req.body;
+
+        // Проверяем, существует ли пользователь с указанным user_id
+        dbConnection.query('SELECT * FROM users WHERE id = ?', [userId], async (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            if (results.length === 0) {
+                return res.status(404).json({ error: 'Пользователь не найден' });
+            }
+
+            // Обновляем данные пользователя
+            dbConnection.query('UPDATE users SET first_name = ?, patro = ?, last_name = ?, birth = ?, polic = ? WHERE id = ?', 
+                [first_name, patro, last_name, birth_date, polic, userId], 
+                (err, result) => {
+                    if (err) {
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.json({ message: 'Данные пользователя успешно обновлены' });
+                }
+            );
+        });
+    } catch (error) {
+        console.error('Ошибка при обновлении данных пользователя:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// app.js
+
+// Редактирование данных пользователя
+
+
+
+app.get('/api/events', (req, res) => {
+    try {
+        // Получение текущей даты в формате YYYY-MM-DD
+        const currentDate = moment().format('YYYY-MM-DD');
+
+        // SQL-запрос для получения данных о событиях с датой больше текущего дня
+        const sqlQuery = `SELECT events.name, events.event_desc, events.advantages, events.date, events.location, partners.name AS partner_name 
+                          FROM events 
+                          INNER JOIN partners ON events.partner_id = partners.id
+                          WHERE events.date > ?`;
+
+        // Выполнение SQL-запроса с использованием текущей даты в качестве параметра
+        dbConnection.query(sqlQuery, [currentDate], (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            // Отправка данных о событиях в формате JSON
+            res.json(results);
+        });
+    } catch (error) {
+        console.error('Ошибка при получении данных о событиях:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
 
 // Запуск сервера
 app.listen(PORT, () => {

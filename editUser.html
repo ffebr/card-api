@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование данных пользователя</title>
+</head>
+<body>
+    <h1>Редактирование данных пользователя</h1>
+    <form id="editUserForm">
+        <label for="firstName">Имя:</label>
+        <input type="text" id="firstName" name="first_name" required>
+        <br>
+        <label for="patro">Отчество:</label>
+        <input type="text" id="patro" name="patro">
+        <br>
+        <label for="lastName">Фамилия:</label>
+        <input type="text" id="lastName" name="last_name" required>
+        <br>
+        <label for="birthDate">Дата рождения:</label>
+        <input type="date" id="birthDate" name="birth_date" required>
+        <br>
+        <label for="polic">Номер полиса:</label>
+        <input type="number" id="polic" name="polic" required>
+        <br>
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <div id="message"></div>
+
+    <script>
+        document.getElementById('editUserForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const firstName = document.getElementById('firstName').value;
+            const patro = document.getElementById('patro').value;
+            const lastName = document.getElementById('lastName').value;
+            const birthDate = document.getElementById('birthDate').value;
+            const polic = document.getElementById('polic').value;
+            const userId = 3; // Замените на актуальный user_id
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/useredit/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer 224455', // Замените на ваш текущий JWT токен
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ first_name: firstName, patro, last_name: lastName, birth_date: birthDate, polic })
+                });
+
+                const data = await response.json();
+                document.getElementById('message').textContent = data.message;
+            } catch (error) {
+                console.error('Ошибка при редактировании данных пользователя:', error);
+                document.getElementById('message').textContent = 'Произошла ошибка при редактировании данных пользователя';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -40,13 +40,26 @@
     <h1>Создание карты</h1>
     <button id="createCardBtn">Создать карту</button>
 
+    <h1>Получение данных о пользователе</h1>
+    <button id="getUserDataBtn">Получить данные о пользователе</button>
+
     <div id="message"></div>
 
     <script>
         const registrationForm = document.getElementById('registrationForm');
         const loginForm = document.getElementById('loginForm');
         const createCardBtn = document.getElementById('createCardBtn');
+        const getUserDataBtn = document.getElementById('getUserDataBtn');
         const messageDiv = document.getElementById('message');
+        let userId;
+
+        // При загрузке страницы проверяем, есть ли сохраненный user_id в локальном хранилище
+        window.onload = () => {
+            userId = localStorage.getItem('userId');
+            if (userId) {
+                messageDiv.textContent = 'Пользователь с user_id ' + userId + ' уже вошел в систему';
+            }
+        };
 
         registrationForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -90,6 +103,8 @@
                 });
 
                 const data = await response.json();
+                userId = data.user_id;
+                localStorage.setItem('userId', userId); // Сохраняем user_id в локальное хранилище
                 messageDiv.textContent = 'Успешный вход. Токен: ' + data.token;
             } catch (error) {
                 console.error('Ошибка входа:', error);
@@ -104,7 +119,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ user_id: /* здесь передайте user_id текущего пользователя */ })
+                    body: JSON.stringify({ user_id: userId })
                 });
 
                 const data = await response.json();
@@ -112,6 +127,17 @@
             } catch (error) {
                 console.error('Ошибка при создании карты:', error);
                 messageDiv.textContent = 'Произошла ошибка при создании карты';
+            }
+        });
+
+        getUserDataBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+                const userData = await response.json();
+                messageDiv.textContent = JSON.stringify(userData, null, 2);
+            } catch (error) {
+                console.error('Ошибка при получении данных о пользователе:', error);
+                messageDiv.textContent = 'Произошла ошибка при получении данных о пользователе';
             }
         });
     </script>
