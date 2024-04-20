@@ -3,70 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тестирование API аутентификации</title>
+    <title>Система управления картами</title>
 </head>
 <body>
-    <h2>Регистрация</h2>
-    <form id="registerForm">
-        <div id="registerError" style="color: red;"></div>
-        <label for="username">Имя пользователя:</label><br>
-        <input type="text" id="registerUsername" name="username"><br>
-        <label for="password">Пароль:</label><br>
-        <input type="password" id="registerPassword" name="password"><br><br>
+    <h1>Регистрация пользователя</h1>
+    <form id="registrationForm">
+        <label for="regUsername">Имя пользователя:</label>
+        <input type="text" id="regUsername" name="username" required>
+        <br>
+        <label for="regPassword">Пароль:</label>
+        <input type="password" id="regPassword" name="password" required>
+        <br>
+        <label for="regFirstName">Имя:</label>
+        <input type="text" id="regFirstName" name="first_name" required>
+        <br>
+        <label for="regPatro">Отчество:</label>
+        <input type="text" id="regPatro" name="patro">
+        <br>
+        <label for="regLastName">Фамилия:</label>
+        <input type="text" id="regLastName" name="last_name" required>
+        <br>
         <button type="submit">Зарегистрироваться</button>
     </form>
 
-    <hr>
-
-    <h2>Вход</h2>
+    <h1>Вход пользователя</h1>
     <form id="loginForm">
-        <div id="loginError" style="color: red;"></div>
-        <label for="username">Имя пользователя:</label><br>
-        <input type="text" id="loginUsername" name="username"><br>
-        <label for="password">Пароль:</label><br>
-        <input type="password" id="loginPassword" name="password"><br><br>
+        <label for="loginUsername">Имя пользователя:</label>
+        <input type="text" id="loginUsername" name="username" required>
+        <br>
+        <label for="loginPassword">Пароль:</label>
+        <input type="password" id="loginPassword" name="password" required>
+        <br>
         <button type="submit">Войти</button>
     </form>
 
-    <script>
-        const registerForm = document.getElementById('registerForm');
-        const loginForm = document.getElementById('loginForm');
-        const registerError = document.getElementById('registerError');
-        const loginError = document.getElementById('loginError');
+    <h1>Создание карты</h1>
+    <button id="createCardBtn">Создать карту</button>
 
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(registerForm);
+    <div id="message"></div>
+
+    <script>
+        const registrationForm = document.getElementById('registrationForm');
+        const loginForm = document.getElementById('loginForm');
+        const createCardBtn = document.getElementById('createCardBtn');
+        const messageDiv = document.getElementById('message');
+
+        registrationForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const username = registrationForm.username.value;
+            const password = registrationForm.password.value;
+            const firstName = registrationForm.first_name.value;
+            const patro = registrationForm.patro.value;
+            const lastName = registrationForm.last_name.value;
+
             try {
-                const response = await fetch('http://localhost:3000/api/auth/register', {
+                const response = await fetch('http://localhost:3000/api/register', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password, first_name: firstName, patro, last_name: lastName })
                 });
-                if (!response.ok) {
-                    throw new Error('Ошибка регистрации');
-                }
+
                 const data = await response.json();
-                console.log(data);
+                messageDiv.textContent = data.message;
             } catch (error) {
-                registerError.textContent = error.message;
+                console.error('Ошибка при регистрации:', error);
+                messageDiv.textContent = 'Произошла ошибка при регистрации';
             }
         });
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(loginForm);
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const username = loginForm.username.value;
+            const password = loginForm.password.value;
+
             try {
-                const response = await fetch('http://localhost:3000/api/auth/login', {
+                const response = await fetch('http://localhost:3000/api/login', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
                 });
-                if (!response.ok) {
-                    throw new Error('Ошибка входа');
-                }
+
                 const data = await response.json();
-                console.log(data);
+                messageDiv.textContent = 'Успешный вход. Токен: ' + data.token;
             } catch (error) {
-                loginError.textContent = error.message;
+                console.error('Ошибка входа:', error);
+                messageDiv.textContent = 'Произошла ошибка при входе';
+            }
+        });
+
+        createCardBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/createCard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: /* здесь передайте user_id текущего пользователя */ })
+                });
+
+                const data = await response.json();
+                messageDiv.textContent = data.message + '. Номер карты: ' + data.card_number;
+            } catch (error) {
+                console.error('Ошибка при создании карты:', error);
+                messageDiv.textContent = 'Произошла ошибка при создании карты';
             }
         });
     </script>

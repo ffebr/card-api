@@ -1,5 +1,5 @@
 // authRouter.js
-
+/*
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
@@ -8,7 +8,7 @@ const dbConnection = require('./db');
 
 // Функция для создания JWT токена
 function generateToken(user) {
-    return jwt.sign({ id: user.id, username: user.username }, 'your_secret_key', { expiresIn: '1h' });
+    return jwt.sign({ id: user.id, username: user.username }, '224455', { expiresIn: '1h' });
 }
 
 // Регистрация нового пользователя
@@ -20,7 +20,7 @@ router.post('/api/register', async (req, res) => {
         }
 
         // Проверка, существует ли пользователь с таким именем
-        dbConnection.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+        dbConnection.query('SELECT * FROM users WHERE email = ?', [username], async (err, results) => {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
@@ -32,8 +32,11 @@ router.post('/api/register', async (req, res) => {
             // Хэширование пароля
             const hashedPassword = await bcrypt.hash(password, 10);
 
+            // Получение текущей даты и времени в формате MySQL
+            const registrationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
             // Вставка нового пользователя в базу данных
-            dbConnection.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], (err, result) => {
+            dbConnection.query('INSERT INTO users (email, password, registration_date) VALUES (?, ?, ?)', [username, hashedPassword, registrationDate], (err, result) => {
                 if (err) {
                     return res.status(500).json({ error: err.message });
                 }
@@ -47,6 +50,7 @@ router.post('/api/register', async (req, res) => {
 });
 
 
+
 // Вход пользователя и создание JWT токена
 router.post('/api/login', async (req, res) => {
     try {
@@ -56,7 +60,7 @@ router.post('/api/login', async (req, res) => {
         }
 
         // Поиск пользователя в базе данных
-        dbConnection.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+        dbConnection.query('SELECT * FROM users WHERE email = ?', [username], async (err, results) => {
             if (err) {
                 return res.status(500).json({ error: err.message });
             }
@@ -96,7 +100,7 @@ function authenticateToken(req, res, next) {
         return res.status(401).json({ error: 'Требуется токен авторизации' });
     }
 
-    jwt.verify(token, 'your_secret_key', (err, user) => {
+    jwt.verify(token, '224455', (err, user) => {
         if (err) {
             return res.status(403).json({ error: 'Неверный токен авторизации' });
         }
@@ -106,3 +110,4 @@ function authenticateToken(req, res, next) {
 }
 
 module.exports = router;
+*/
